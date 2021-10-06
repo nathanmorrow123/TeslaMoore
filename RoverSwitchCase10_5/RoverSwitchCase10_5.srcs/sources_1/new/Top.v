@@ -1,9 +1,7 @@
 `timescale 1ns / 1ps
 
-
 module Top(
-
-    input CLK100MHZ, reset,
+   input CLK100MHZ, reset,
     input [15:0] sw,  //the 4 inputs for each display
     input outerLeft,
     //input innerLeft,
@@ -19,7 +17,7 @@ module Top(
     output [15:0] LED
  );
 
-reg [20:0] maxValue = 200000;   //Max counter value
+reg [20:0] maxValue = 150000;   //Max counter value
 reg [18:0] lowSpeed = 90000;
 
 reg [18:0] counter =0;        //Counter for this project
@@ -46,40 +44,38 @@ always@(posedge CLK100MHZ)begin
 end  
 */
 always@(posedge CLK100MHZ)begin //clock
-   if(outerLeft == 0 )begin
-        leftPWM <= 200000;
+
+   if(outerLeft == 0 && outerRight==1)begin
+       // leftPWM <= 200000;
         leftDirection <= 0;
         rightDirection <= 1;
-   end else begin
+   end else if(outerLeft == 1 && outerRight==0) begin
        leftDirection <= 1;
-        rightDirection <= 1;
-   end
-   
-   if(outerRight == 0)begin
-        rightPWM <= 200000;
-        leftDirection <= 1;
         rightDirection <= 0;
-    end else begin
-       leftDirection=1;
-        rightDirection=1;
+   end else begin
+        leftDirection=1;
+        rightDirection=1; 
    end
-                 
+              
+       // leftDirection=1;
+        //rightDirection=1;   
 end     
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
     //left      enable A        Left
-    assign enableA = (Sensor && counter < lowSpeed) ? 1:0;      //JC[4] enableA
-    not leftLed (LED[14], outerLeft );                          //enableA
-    assign directionPinAF= (~leftDirection) ? 1:0;                 //JC[6] forward
-    assign directionPinAB= (leftDirection) ? 1:0;                  //JC[5] Backward
+    assign enableA = ( counter < lowSpeed) ? 1:0;      //JC[4] enableA
+    //not leftLed (LED[14], outerLeft );                          //enableA
+    assign LED[14] = (~outerLeft )? 1:0;
     
+    assign directionPinAF= (~(leftDirection==1)) ? 1:0;                 //JC[6] forward
+    assign directionPinAB= (leftDirection==1) ? 1:0;                  //JC[5] Backward
     
+ 
     //right     enable B        right
-    assign enableB = ( Sensor && counter < lowSpeed) ? 1:0;     //JC[0]
-    not rightLed (LED[1], outerRight );                         //enableB     
-    assign directionPinBF= (~rightDirection) ? 1:0;                //JC[1]   Forward
-    assign directionPinBB= (rightDirection) ? 1:0;                 // JC[2]   Backward
+    assign enableB = ( counter < lowSpeed) ? 1:0;     //JC[0]
+    //not rightLed (LED[1], outerRight );                         //enableB  
+    assign LED[1] = (~outerRight )? 1:0;   
+    assign directionPinBF= ( ~(rightDirection==1)) ? 1:0;                //JC[1]   Forward
+    assign directionPinBB= (rightDirection==1) ? 1:0;                 // JC[2]   Backward
     
-    
-   
 endmodule

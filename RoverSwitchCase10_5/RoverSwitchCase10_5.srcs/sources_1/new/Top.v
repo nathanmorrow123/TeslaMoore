@@ -3,10 +3,12 @@
 module Top(
    input CLK100MHZ, reset,
     input [15:0] sw,  //the 4 inputs for each display
-    input outerLeft,
+    input left,
     //input innerLeft,
     //input innerRight,
+    input right,
     input outerRight,
+    input center,
     input Sensor,
     //output [6:0] JC,   //output to H-Bridge
     output enableA, directionPinAF, directionPinAB,
@@ -17,20 +19,26 @@ module Top(
     output [15:0] LED
  );
 
-reg [20:0] maxValue = 150000;   //Max counter value
-reg [18:0] lowSpeed = 90000;
+reg [20:0] maxValue = 200000;   //Max counter value
+reg [18:0] highSpeed =150000;
+reg [18:0] lowSpeed =  90000;
 
 reg [18:0] counter =0;        //Counter for this project
 
-reg [18:0] rightPWM;
+reg [18:0] rightSpeed=150000;
 reg [18:0] rightDirection;
-reg [18:0] leftPWM;
+reg [18:0] leftSpeed =150000;
 reg [18:0] leftDirection;
 
 reg [18:0] slowPwm;
 reg [18:0] fastPwm;
 
+reg [1:0] pitState=0;
+reg [3:0] breakOut=0;
+reg [1:0] previousState=1;
+reg [1:0] regularState=1;
 
+reg [1:0] newState=0;
 always@(posedge CLK100MHZ)begin //clock
     if (counter <maxValue) //count until 100
         counter <=counter+1; 
@@ -44,38 +52,79 @@ always@(posedge CLK100MHZ)begin
 end  
 */
 always@(posedge CLK100MHZ)begin //clock
-
-   if(outerLeft == 0 && outerRight==1)begin
-       // leftPWM <= 200000;
-        leftDirection <= 0;
-        rightDirection <= 1;
-   end else if(outerLeft == 1 && outerRight==0) begin
-       leftDirection <= 1;
-        rightDirection <= 0;
-   end else begin
-        leftDirection=1;
-        rightDirection=1; 
-   end
+    if(outerRight==0)
+        pitState=1;
+        
+    if(pitState==1)begin   
+        if(center != regularState )begin
+            regularState= center;
+            breakOut=breakOut+1;
+        end                
+    end    
+    if(breakOut==2)begin
+        pitState=0;
+        breakOut=0;
+    end
+///////////////////////////////////////////////////////////////////////////////////////////
+//create a module for the turns
+    if(pitState==0)begin
+       if(left == 0 && center ==1 && right==1  )begin           //Turn Left
+            leftDirection <= 0;
+            rightDirection <= 1;
+            newState=0;
+            rightSpeed=highSpeed;
+            leftSpeed= highSpeed;
+       end else if(left == 0 && center ==0 && right==1 ) begin //TurnLeft
+            if(newState == 1)begin
+                leftDirection <= 1;
+                rightDirection <= 0;
+           end else begin
+               leftDirection <= 0;
+                rightDirection <= 1; 
+           end   
+       end else if(left == 1 && center ==0 && right==0   ) begin //straight
+            leftDirection <= 1;
+            rightDirection <= 1;        
+       end else if(left == 1 && center ==1 && right==0   ) begin //Turn Right
+            leftDirection <= 1;
+            rightDirection <= 0;
+       end else if(left == 0 && center ==0 && right==0  ) begin //TurnRight 
+            leftDirection <= 1;
+            rightDirection <= 0;   
+            newState=1;//change to left state
+            rightSpeed=lowSpeed;
+            leftSpeed= maxValue;
+       end else begin
+            leftDirection=1;
+            rightDirection=1; 
+       end     
+    end else begin
+      leftDirection <= 1;
+      rightDirection <= 0;
+    end
+              
               
        // leftDirection=1;
         //rightDirection=1;   
 end     
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //left      enable A        Left
-    assign enableA = ( counter < lowSpeed) ? 1:0;      //JC[4] enableA
-    //not leftLed (LED[14], outerLeft );                          //enableA
-    assign LED[14] = (~outerLeft )? 1:0;
-    
+    //left      enable A        Left    enableA     Right       EnableA
+    assign enableA = ( sw[0]==1 && counter < leftSpeed) ? 1:0;      //JC[4] enableA
+    assign LED[15] = (~left )? 1:0;
+    assign LED[9] =(~center) ? 1:0;
     assign directionPinAF= (~(leftDirection==1)) ? 1:0;                 //JC[6] forward
     assign directionPinAB= (leftDirection==1) ? 1:0;                  //JC[5] Backward
-    
  
-    //right     enable B        right
-    assign enableB = ( counter < lowSpeed) ? 1:0;     //JC[0]
-    //not rightLed (LED[1], outerRight );                         //enableB  
-    assign LED[1] = (~outerRight )? 1:0;   
+    //right     enable B        right       //enableB  Right enableB   Right
+    assign enableB = (  sw[0]==1 && counter < rightSpeed) ? 1:0;     //JC[0] //enableB  
+    assign LED[3] = (~right )? 1:0; 
+    assign LED[0] = (~outerRight )? 1:0;   
     assign directionPinBF= ( ~(rightDirection==1)) ? 1:0;                //JC[1]   Forward
     assign directionPinBB= (rightDirection==1) ? 1:0;                 // JC[2]   Backward
     
+    assign LED[10] = (pitState==1 )? 1:0;
+    assign LED[11] =(regularState) ? 1:0;
+    assign LED[12] =(previousState) ? 1:0;
+    assign LED[13] =(breakOut==1) ? 1:0;
 endmodule

@@ -4,6 +4,7 @@ module Top(
     input CLK100MHZ, reset,
     input [15:0] sw,  //the 4 inputs for each display
     input left,
+    input [7:0] JB,
     //input innerLeft,
     //input innerRight,
     input right,
@@ -33,6 +34,10 @@ reg [18:0] leftDirection;
 reg [18:0] slowPwm;
 reg [18:0] fastPwm;
 
+reg [1:0] onState=0;
+reg [3:0] stopState=0;
+
+
 reg [1:0] pitState=0;
 reg [3:0] breakOut=0;
 reg [1:0] previousState=1;
@@ -43,8 +48,23 @@ always@(posedge CLK100MHZ)begin //clock
     if (counter <maxValue) //count until 100
         counter <=counter+1; 
     else
-        counter <=0; //reset counter              
-end      
+        counter <=0; //reset counter    
+   
+               
+   //stopState
+   if(JB[0]==0)
+         onState=0;
+   
+   if(onState==0)begin
+        if(JB[0])
+        onState=JB[0];
+        stopState=stopState+1;   
+   end else if(JB[0]==0 && onState==1)begin
+        onState=0;
+   end     
+        
+end   
+
 /*
 always@(posedge CLK100MHZ)begin 
     switch
@@ -74,6 +94,8 @@ task GoStraight();
 endtask
 
 always@(posedge CLK100MHZ)begin //clock
+
+    
     if(outerRight==0)
         pitState=1;
         
@@ -125,14 +147,14 @@ end
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
     //left      enable A        Left    enableA     Right       EnableA
-    assign enableA = ( sw[0]==1 && counter < leftSpeed) ? 1:0;      //JC[4] enableA
+    assign enableA = ( onState==1 && counter < leftSpeed) ? 1:0;      //JC[4] enableA
     assign LED[15] = (~left )? 1:0;
     assign LED[9] =(~center) ? 1:0;
     assign directionPinAF= (~(leftDirection==1)) ? 1:0;                 //JC[6] forward
     assign directionPinAB= (leftDirection==1) ? 1:0;                  //JC[5] Backward
  
     //right     enable B        right       //enableB  Right enableB   Right
-    assign enableB = (  sw[0]==1 && counter < rightSpeed) ? 1:0;     //JC[0] //enableB  
+    assign enableB = (  onState==1 && counter < rightSpeed) ? 1:0;     //JC[0] //enableB  
     assign LED[3] = (~right )? 1:0; 
     assign LED[0] = (~outerRight )? 1:0;   
     assign directionPinBF= ( ~(rightDirection==1)) ? 1:0;                //JC[1]   Forward

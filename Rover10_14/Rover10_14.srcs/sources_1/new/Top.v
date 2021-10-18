@@ -52,16 +52,10 @@ always@(posedge CLK100MHZ)begin //clock
    
                
    //stopState
-   if(JB[0]==0)
-         onState=0;
-   
-   if(onState==0)begin
-        if(JB[0])
-        onState=JB[0];
-        stopState=stopState+1;   
-   end else if(JB[0]==0 && onState==1)begin
-        onState=0;
-   end     
+ if(JB[7]==0)
+    onState=0;
+ else
+    onState=1;
         
 end   
 
@@ -92,10 +86,12 @@ task GoStraight();
     rightDirection <= 1;
     end
 endtask
-
+//////////////////////////////////////////////////##################################
+//////////////////////////////////////////////////##################################
+//////////////////////////////////////////////////##################################
 always@(posedge CLK100MHZ)begin //clock
 
-    
+ 
     if(outerRight==0)
         pitState=1;
         
@@ -139,22 +135,22 @@ always@(posedge CLK100MHZ)begin //clock
       TurnRight();
       
     end
-              
-              
+                          
        // leftDirection=1;
         //rightDirection=1;   
 end     
-
+//////////////////////////////////////////////////##################################
+//////////////////////////////////////////////////##################################
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
     //left      enable A        Left    enableA     Right       EnableA
-    assign enableA = ( onState==1 && counter < leftSpeed) ? 1:0;      //JC[4] enableA
+    assign enableA = ( (onState==1 &&sw[0]==1) && counter < leftSpeed) ? 1:0;      //JC[4] enableA
     assign LED[15] = (~left )? 1:0;
     assign LED[9] =(~center) ? 1:0;
     assign directionPinAF= (~(leftDirection==1)) ? 1:0;                 //JC[6] forward
     assign directionPinAB= (leftDirection==1) ? 1:0;                  //JC[5] Backward
  
     //right     enable B        right       //enableB  Right enableB   Right
-    assign enableB = (  onState==1 && counter < rightSpeed) ? 1:0;     //JC[0] //enableB  
+    assign enableB = ( (onState==1 &&sw[0]==1) && counter < rightSpeed) ? 1:0;     //JC[0] //enableB  
     assign LED[3] = (~right )? 1:0; 
     assign LED[0] = (~outerRight )? 1:0;   
     assign directionPinBF= ( ~(rightDirection==1)) ? 1:0;                //JC[1]   Forward

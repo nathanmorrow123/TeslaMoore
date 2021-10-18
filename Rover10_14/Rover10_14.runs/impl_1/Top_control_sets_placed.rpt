@@ -1,7 +1,7 @@
 Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 ------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
-| Date         : Sun Oct 17 18:33:35 2021
+| Date         : Sun Oct 17 19:08:08 2021
 | Host         : DESKTOP-PAI1L7N running 64-bit major release  (build 9200)
 | Command      : report_control_sets -verbose -file Top_control_sets_placed.rpt
 | Design       : Top
@@ -58,7 +58,7 @@ Table of Contents
 +--------------+-----------------------+------------------------+-----------------+--------------+
 | Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
 +--------------+-----------------------+------------------------+-----------------+--------------+
-| No           | No                    | No                     |              13 |            6 |
+| No           | No                    | No                     |              13 |            5 |
 | No           | No                    | Yes                    |               0 |            0 |
 | No           | Yes                   | No                     |              18 |            5 |
 | Yes          | No                    | No                     |               1 |            1 |
@@ -74,7 +74,7 @@ Table of Contents
 |     Clock Signal     |      Enable Signal      | Set/Reset Signal | Slice Load Count | Bel Load Count | Bels / Slice |
 +----------------------+-------------------------+------------------+------------------+----------------+--------------+
 |  CLK100MHZ_IBUF_BUFG | regularState[0]_i_1_n_0 |                  |                1 |              1 |         1.00 |
-|  CLK100MHZ_IBUF_BUFG |                         |                  |                6 |             13 |         2.17 |
+|  CLK100MHZ_IBUF_BUFG |                         |                  |                5 |             13 |         2.60 |
 |  CLK100MHZ_IBUF_BUFG |                         | clear            |                5 |             18 |         3.60 |
 +----------------------+-------------------------+------------------+------------------+----------------+--------------+
 
